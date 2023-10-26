@@ -1,0 +1,163 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+   name: lab3
+
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: secret-itdt
+  namespace: lab3
+  labels:
+    app: lab3
+data:
+  react_app_username: "Anyaoi"
+  react_app_company_name: "ITMO University"
+
+
+---
+
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: itdt-replica
+  namespace: lab3
+  labels:
+    app: lab3
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: lab3
+  template:
+    metadata:
+      labels:
+        app: lab3
+    spec:
+      containers:
+      - name: lab3
+        image: ifilyaninitmo/itdt-contained-frontend:master
+        env:
+        - name: REACT_APP_USERNAME
+          valueFrom:
+              configMapKeyRef:
+                name: secret-itdt
+                key:  react_app_username
+        - name: REACT_APP_COMPANY_NAME
+          valueFrom:
+              configMapKeyRef:
+                name: secret-cm
+                key: react_app_company_name
+        ports:
+        - containerPort: 3000
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: lab3-service
+  namespace: lab3
+  labels:
+    app: lab3
+spec:
+  selector:
+    app: lab3
+  ports:
+  - protocol: TCP
+    port: 8200
+    targetPort: 3000
+  type: NodePort
+
+---
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingr
+  namespace: lab3
+  labels:
+    app: lab3
+spec:
+  tls:
+  - hosts:
+      - anyaoi-lab3.ru
+    secretName: lab3-tls
+  rules:
+   - host: anyaoi-lab3.ru
+     http:
+        paths:
+          - pathType: Prefix
+            path: /
+            backend:
+              service:
+                name: lab3-service
+                port:
+                  number: 8200
+
+---
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: lab3-tls
+  namespace: lab3
+  labels:
+    app: lab3
+type: kubernetes.io/tls
+stringData:
+  tls.crt: |
+    -----BEGIN CERTIFICATE-----
+    MIID2zCCAsOgAwIBAgIUSOLsxFN7LgUlX7exlsz5AVMz0kYwDQYJKoZIhvcNAQEL
+    BQAwfTELMAkGA1UEBhMCcnUxEzARBgNVBAgMCnBldGVyc2J1cmcxEzARBgNVBAcM
+    CnBldGVyc2J1cmcxCzAJBgNVBAoMAm1lMQswCQYDVQQLDAJtZTEMMAoGA1UEAwwD
+    ZXZhMRwwGgYJKoZIhvcNAQkBFg11dmVuNUBtYWlsLnJ1MB4XDTIzMTAyMjEyMTk1
+    OVoXDTI0MTAyMTEyMTk1OVowfTELMAkGA1UEBhMCcnUxEzARBgNVBAgMCnBldGVy
+    c2J1cmcxEzARBgNVBAcMCnBldGVyc2J1cmcxCzAJBgNVBAoMAm1lMQswCQYDVQQL
+    DAJtZTEMMAoGA1UEAwwDZXZhMRwwGgYJKoZIhvcNAQkBFg11dmVuNUBtYWlsLnJ1
+    MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA8QYpuwwCX1SHuygAUF+t
+    5bG2zlW+1J4R9E+P7sjDUW906Q+Rs1woXAs2aDYdn8KEnZoQQ1blSh/+gMGi/wd0
+    QZjzVQS5czuNipWptdpkMkZBYY9OKF6wYPplqCqjB4dSSPxI8f841+D16CNUEXDA
+    Rrk0mN4OvrV5hpFAK8W2Lc/xo14cscSS+hcX/K1oGh9NgibFKMWKIPjrCmU5XZxj
+    9FfurcsR2jkb6OxFEx96peaLnoyJyGJDrUsOoK34pkugf9ah59CwyYG5CIf9krHa
+    8eohu7Mfo1sLkx8rWYWnEawAzbdZY0aTM3ATVMMkRXGPt7VVdaHLmnRO9Kvvrxp6
+    sQIDAQABo1MwUTAdBgNVHQ4EFgQUTAt4LOrpB4F88e2shFGz93T0K74wHwYDVR0j
+    BBgwFoAUTAt4LOrpB4F88e2shFGz93T0K74wDwYDVR0TAQH/BAUwAwEB/zANBgkq
+    hkiG9w0BAQsFAAOCAQEAgAmP86i0W3jp1lVMdrb15JtJCTDFVCNtZS0T/lLdbvcy
+    alTpr5r2dXXW4aR6mIN4VoK1KyVNyrnpRUrZqjEk9Yz2u/CKurqzahIavx/jc4uz
+    CEw4qjTllQ9h/E+5ez+wluxAvsxne1cda7oyh5yRh5mcgHodDbbGg6jTd0CxZRch
+    Lmrpu6CHbpiJzmGmHR67id9FGNpKcy62AiBky+/onQXBeKeYO6neZKzHTJVGUOfw
+    /ykRa3hZUKEXcUN8leOZhsI4E2nUMMtAltCFYTtxrrq/WqNYij0WA9+5qxxG890o
+    GCU+bpAkCuD1Wiy0bG7xAcpu5JulHwLCjwNpCvJSAg==
+    -----END CERTIFICATE-----
+  tls.key: |
+    -----BEGIN PRIVATE KEY-----
+    MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDxBim7DAJfVIe7
+    KABQX63lsbbOVb7UnhH0T4/uyMNRb3TpD5GzXChcCzZoNh2fwoSdmhBDVuVKH/6A
+    waL/B3RBmPNVBLlzO42Klam12mQyRkFhj04oXrBg+mWoKqMHh1JI/Ejx/zjX4PXo
+    I1QRcMBGuTSY3g6+tXmGkUArxbYtz/GjXhyxxJL6Fxf8rWgaH02CJsUoxYog+OsK
+    ZTldnGP0V+6tyxHaORvo7EUTH3ql5ouejInIYkOtSw6grfimS6B/1qHn0LDJgbkI
+    h/2Ssdrx6iG7sx+jWwuTHytZhacRrADNt1ljRpMzcBNUwyRFcY+3tVV1ocuadE70
+    q++vGnqxAgMBAAECggEAOgThxsT9TTVr9wGKEc72bXR6LPE3HrduWwFMBI8PdWr/
+    GZtF14c3r/CDCFL+jpaklcugXpVsXIuXGCeEtR92PNQ0vyKEAdk0GUgtsjkAJZoD
+    4xg8GDuy+aVNE04wMH/Crw8MADUP2eetSlQ2yHv7zQqIPsQ1iHLm7h3I9MCDOkN8
+    qTdV3+HU16uLiUJUWolxLseHJJFvisFeTbxHd3skA6aq6PkHu1djKzRTwubLlBIm
+    AhfT3BxQ/Dfdhr5FOiytbKeP3zewoC5Peqp4s1LE2RvtewRj5+kqpO7/SSDLj2B+
+    3a8lOISCQzR/mDoQQVAeci5l8WRa8UlMZu04pjYWAQKBgQD9yUTLj9oupphoedJ6
+    +knN42mGXBZ81sk53vLul3/LILVfBHTdygUtuXW6Emh6yVZ/i9edEFSz7vz0/K3X
+    tjkqtUMv6b1HwdAyg0DMImY3I060uSI7c26CDC/aqhJslVNs6wCvJDAhvqV/t+9o
+    7FydtsoTXCbJCAykW7P8nO6vVQKBgQDzIGUlIxa2eeofVfkVKLKEa3MnPHJ9g40D
+    fQ9JaiidAB5uLKXmXIy/7adfAdd6fhesMu/D5HKbSdhT0kih1ttLUcPLMmY8gThI
+    EAVza/SHkuDmqoT3M1jDdN0SgDH76TJwmtOybi7u/ow4A77SykbMlC7kHXexu+Cx
+    mqE9At+F7QKBgQCWRdU8i+NveCoKwwfE1etZxGy5qFGQfkYMxF0otgBvsOB0cNka
+    cwL5/jUdhsTi39EeGRoE4KSnHr4d+nidoELdbRNpjYgMs1CqeFmoBj5sK7XxASap
+    +UHYM4sqeUYLkagieEyhaFYvxQmORMW4ZSy6HoAtUoWMx/1kXQCIdgxHOQKBgQDK
+    Q3ciEDEDGiXWb/XKzpLFa4bfa4BsPxb/gflHwFONWd33FpnmLbTCr3oApk2XkHMt
+    RSsHM3TNEAAyq8zVJyRFYv6ae5FmYLJr8Tg3r+Y9K8qC2/XGmicMZJrOm2v6ASV/
+    XK8l0FinZ4lLyIHmZ3XDGLxx9rnvWTgzSUs+sLc4eQKBgAYxrtZYsDUKwSGaQ5nn
+    8KmIbEkESH9mkgShPnFzHXHc0ZWGtdp84mWrOzovVBoliRTjPIPEkV85Viq08/FA
+    UXkPUcq7SKkno7aUmSt7vF2akcXC/KD1JtqZOPGn3xuX7KP3QdKpuJaJzEuiR2C6
+    v+AEe6z5A50//GUMRLbpyRnc
+    -----END PRIVATE KEY-----

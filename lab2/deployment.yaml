@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: itdt-deployment
+  labels:
+    app: itdt
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: itdt
+  template:
+    metadata:
+      labels:
+        app: itdt
+    spec:
+      containers:
+      - name: itdt-frontend
+        image: ifilyaninitmo/itdt-contained-frontend:master
+        env:
+        - name: REACT_APP_USERNAME
+          value: "Anyaoi"
+        - name: REACT_APP_COMPANY_NAME
+          value: "ITMO University"

@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: itdt-config
+data:
+  REACT_APP_USERNAME: "Anyaoi"
+  REACT_APP_COMPANY_NAME: "ITMO University"
