@@ -5,45 +5,36 @@
 <p> Group: K4113c
 <p> Author: Novozhilova Anna Vladimirovna
 <p> Lab: Lab1
-<p> Date of create: 17.10.2023
-<p> Date of finished: 05.03.2023
+<p> Date of create: 21.10.2023
+<p> Date of finished: 26.10.2023
 
 <h4>Отчёт о выполнении лабораторной работы</h4>
 
-1. Для начала работы над лабораторной необходимо было скачать Docker и minikube. Docker уже был установлен на машине, minikube был установлен с помощью дистрибутива.
+1. Был написан манифест, декларирующий существование деплоймента, в который входит два пода (количество подов контрлируется репликасетом). В подах размещен контейнер с приложением itdt-contained-frontend. Текст манифеста находится в файле deployment.yaml.
 
-2. Был создан контейнер в docker, в котором запущен кластер из одного узла.  
-<image src="https://github.com/anny-nov/2022_2023-ip-telephony-k34212-novozhilova-a-v/blob/main/lab1/img/1.png">
-Рисунок 1 - Развертывание кластера
+2. С помощью поля env для контейнеров в подах определены переменные REACT_APP_USERNAME и REACT_APP_COMPANY_NAME.
 
-3. Затем был написан манифест, декларирующий существование пода (набор контейнеров), который должен состоять из одного контейнера vault-container с исходным образом hashicorp/vault:1.13.3. Полный текст манифеста находится в файле vault.yaml.
+3. С помощью команды minikube kubectl apply манифест был применен. Как только создается деплоймент, репликасет поднимает нужное количество подов, дополнительных действий не требуется.
+<image src="https://github.com/anny-nov/2023_2024-introduction_to_distributed_technologies-k4113c-novozhilova-a-v/blob/main/lab2/img/1.png">
+Рисунок 1 - Создание deployment
 
-4. Этот манифест был применен с помощью команды kubectl apply. Спустя какое-то время в списке подов отобразился запущенный под vault.
-<image src="https://github.com/anny-nov/2022_2023-ip-telephony-k34212-novozhilova-a-v/blob/main/lab1/img/7.png">
-Рисунок 2 - Создание пода vault
+4. Для доступа к приложению был создан сервис, который делает доступным созданный ранее deployment, прокидывая в контейнер порт 3000 (на этом порту в контейнере расположено приложение).
+<image src="https://github.com/anny-nov/2023_2024-introduction_to_distributed_technologies-k4113c-novozhilova-a-v/blob/main/lab2/img/2.png">
+Рисунок 2 - Создание сервиса
 
-5. Изначально поды доступны только внутри кластера по внутренним адресам. Поэтому далее был создан сервис, который обеспечивает доступ к подам с именем vault снаружи кластера при подключении к порту 8200.
-<image src="https://github.com/anny-nov/2022_2023-ip-telephony-k34212-novozhilova-a-v/blob/main/lab1/img/6.png">
-Рисунок 3 - Создание сервиса
+5. Был прокинут 3000 порт локального компьютера с помощью port-forwarding, чтобы иметь доступ к приложению с локального адреса.
+<image src="https://github.com/anny-nov/2023_2024-introduction_to_distributed_technologies-k4113c-novozhilova-a-v/blob/main/lab2/img/3.png">
+Рисунок 3 - Форвардинг портов
 
-6. Чтобы получить доступ с компьютера, без необходимости заходить в кластер, был прокинут порт локального компьютера на порт сервиса, по которому доступно приложение.
-<image src="https://github.com/anny-nov/2022_2023-ip-telephony-k34212-novozhilova-a-v/blob/main/lab1/img/5.png">
-Рисунок 4 - Форвардинг портов
-
-7. Теперь приложение Vault стало доступно по адресу http://localhost:8200.
-<image src="https://github.com/anny-nov/2022_2023-ip-telephony-k34212-novozhilova-a-v/blob/main/lab1/img/4.png">
+6. Теперь приложение стало доступно по адресу http://localhost:3000. На сайте отображаются значения переменных и имя контейнера, который прислал данные. Переменные неизменны, так как они задавались при создании подов и применяются ко всем созданным контейнерам. Имя контейнера же может меняться, так как внутри deployment расположены два пода, они равноправны и оба могут отзываться на запросы.
+<image src="https://github.com/anny-nov/2023_2024-introduction_to_distributed_technologies-k4113c-novozhilova-a-v/blob/main/lab2/img/4.png">
 Рисунок 5 - Приложение, установленное в контейнере
 
-8. Для авторизации в Vault необходим был авторизационный токен, который отображается в логах при запуске приложения. Для того, чтобы посмотреть логи пода, была использована команда kubectl logs vault
-<image src="https://github.com/anny-nov/2022_2023-ip-telephony-k34212-novozhilova-a-v/blob/main/lab1/img/8.png">
-Рисунок 6 - Просмотр логов и поиск токена
+8. Логи для каждого отдельного контейнера можно посмотреть с помощью команды minikube kubectl logs с параметром -с (в параметр передается имя контейнера).
+<image src="https://github.com/anny-nov/2023_2024-introduction_to_distributed_technologies-k4113c-novozhilova-a-v/blob/main/lab2/img/5.png">
+Рисунок 6 - Просмотр логов контейнеров
 
-9. После введения токена в окно авторизации, был успешно получен доступ к функциям приложения.
-<image src="https://github.com/anny-nov/2022_2023-ip-telephony-k34212-novozhilova-a-v/blob/main/lab1/img/9.png">
-Рисунок 7 - Vault после авторизации
+9. Была составлена схема организации контейнеров и серверов.
+<image src="https://github.com/anny-nov/2023_2024-introduction_to_distributed_technologies-k4113c-novozhilova-a-v/blob/main/lab2/img/6.png">
 
-10. После завершения авторизации контейнер с кластером был остановлен с помощью команды minikube stop
-<image src="https://github.com/anny-nov/2022_2023-ip-telephony-k34212-novozhilova-a-v/blob/main/lab1/img/10.png">
-Рисунок 8 - Остановка кластера 
-
-**Выводы**: В результате выполнения лабораторной работы были собраны и настроены две схемы сети в Cisco Packet Tracer, освоены базовые принципы работы сетей на основе коммутаторов Cisco и сетей, ипользующих в работе технологию VoIP.
+**Выводы**: В результате выполнения лабораторной работы были изучены и применены на практике deployment и replicaset, позволяющие осуществлять управление несколькими подами одновременно.
