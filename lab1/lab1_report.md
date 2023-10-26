@@ -27,7 +27,7 @@
 Рисунок 3 - Создание сервиса
 
 6. Чтобы получить доступ с компьютера, без необходимости заходить в кластер, был прокинут порт локального компьютера на порт сервиса, по которому доступно приложение.
-<image src="https://github.com/anny-nov/2023_2024-introduction_to_distributed_technologies-k4113c-novozhilova-a-v/blob/main/lab1/img/7.png">
+<image src="https://github.com/anny-nov/2023_2024-introduction_to_distributed_technologies-k4113c-novozhilova-a-v/blob/main/lab1/img/5.png">
 Рисунок 4 - Форвардинг портов
 
 7. Теперь приложение Vault стало доступно по адресу http://localhost:8200.
